@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html> <head>
+
+<!-- Bootstrap requires the following three meta tags to appear first -->
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+<title>Vocabulary Anagram</title>
+
+<!-- Javascript and Cascading Style Sheets (css) libraries -->
+<!-- mostly from content delivery networks                 -->
+
+<!-- jquery; CDN load is usually quick because it's likely cached -->
+<script type="text/javascript"
+     src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js">
+</script>
+
+<!-- Bootstrap stylesheet let's us have a 'responsive' layout; -->
+<!-- 12 column grid rearranges itself for smaller screens or windows. -->
+
+<!-- per http://getbootstrap.com/getting-started/  -->
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet"
+ href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+ integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7"
+  crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script
+ src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+ integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+ crossorigin="anonymous">
+</script>
+
+<!-- Our own css file.  Note how we can link directly here and not -->
+<!-- write any routing code in the Flask application. -->
+<link rel="stylesheet" href="/static/jumble.css" />
+
+</head>
+
+<body>
+<div class="container">
+
+  <div class="row">
+    <div class="col-xs-6 text-center">
+      <h1>Words</h1>
+    </div>
+  </div>
+<!-- Vocabularly words layed out in 6 columns;
+  -- bootstrap may collapse to fewer columns and
+  -- more rows if the window is narrow.
+  -->
+<div class="row">
+  {% for word in g.vocab %}
+    <div class="col-xs-2 text-center"> {{ word }} </div>
+    {% if loop.index is divisibleby 3 %}
+    </div> <!-- row -->
+    <div class="row">
+    {% endif %}
+  {% endfor %}
+</div> <!-- row -->
+
+<br />
+
+<div class="row">
+  <div class="col-xs-6 text-center">
+   Use letters from
+  </div>
+  </div><div class="row">
+  <div class="col-xs-6 text-center lead">
+    <strong>{{ session.jumble }}</strong>
+  </div>
+  </div><div class="row">
+  <div class="col-xs-6 text-center">
+    to spell {{session.target_count}} words from the list.
+  </div> <!-- col -->
+</div> <!-- row -->
+<br />
+<div class="row">
+  <div class="col-xs-6 text-center">
+  <form id="entry">
+    <label for="attempt">Word:</label>
+    <input id="attempt" name="attempt" type="text" width="15"
+      autocomplete="off"  autofocus />
+  </form>
+</div></div>
+
+<br />
+
+<p><label id="msg" class="message"></label></p>
+<p><label id="matchlist" class="message"></label></p>
+
+
+</div> <!-- container -->
+
+<script>
+ $("#attempt").keyup(function(event) {
+  var txt = $("#attempt").val();  // Current content of the input field
+  var keycode = event.which;      // They key that just went up
+  var letter = String.fromCharCode(keycode);
+
+  
+  if (! "ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(letter)) { return } //This will make sure that the input will only contain letters
+
+  $.getJSON( "/_check", { text: txt }, 
+             function(data) {
+               var found_match = data.result.matches; //This grabs the matching 
+               var display_message = data.result.message; //This will notify the user if there is a problem with their input
+
+               var matching = data.result.matching; //This will eventually notify the user if they get all 3 words from the Anagram
+               var anagramFinished = data.result.anagramFinished; //This will be used to finally change the HTML when 3 or more words are found and will bring up success.html
+
+
+               if (found_match) {
+                  $("#msg").html(display_message);
+                  $("#matchlist").html("Matches Found: " + matching);
+                  $("#attempt").val("");
+               } else {
+                  $("#msg").html(display_message); 
+               }
+               if (anagramFinished) {
+                   window.location.replace("/success");
+               }
+              }
+          );
+  });
+
+</script>
+
+</body> </html>
